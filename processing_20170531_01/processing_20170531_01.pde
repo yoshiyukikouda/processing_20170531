@@ -1,33 +1,39 @@
 // 摩擦
-import processing.opengl.*;
-
 Mover movers[] = new Mover[50];
 
 /*
 * 初期設定
 */
 void setup() {
-  size(600, 500, OPENGL);
+  frameRate(60);
+  size(600, 400);
   for (int i = 0; i < movers.length; i++)
   {
-    movers[i] = new Mover(random(0.1, 4), random(0, width), random(0, height), random(-300, -50), random(0, 255), random(0, 255), random(0, 255), 255);
+    movers[i] = new Mover(random(0.1, 4), 0, 0, random(0, 255), random(0, 255), random(0, 255), 255);
   }
 }
 
 /*
 * 随時描写
 */
-void draw() { 
+void draw() {
   // 背景描写
-  background(255);
-  drawBackground(  0, 0, 0, 255, 255, 255,   0);
-  drawBackground(200, 0, 0,   0,   0,   0, 100);
-  drawBackground(400, 0, 0, 255, 255,   0, 100);
-  
+  fill(0, 20);
+  rect(0, 0, 200, height);
+  fill(0, 255, 0, 30);
+  rect(200, 0, 200, height);
+  fill(255, 255, 0, 30);
+  rect(400, 0, 200, height);
+
+  // オブジェクトの軌跡
+  noStroke();
+  fill(255, 20);
+  rect(0, 0, width, height);
+
   // 風力
-  PVector wind = new PVector(0.001, 0, 0);
+  PVector wind = new PVector(0.001, 0);
   // 重力
-  PVector gravity = new PVector(0, 0.1, 0);
+  PVector gravity = new PVector(0, 0.1);
 
   // 表示更新
   for (int i = 0; i < movers.length; i++) {
@@ -59,48 +65,9 @@ void draw() {
     movers[i].checkEdges();
     movers[i].display();
   }
-}
-
-/*
-* 背景描写
-* @param : x      X座標
-* @param : y      Y座標
-* @param : z      Z座標
-* @param : r      Red
-* @param : g      Green
-* @param : b      Blue
-* @param : alpha  透過度
-*/
-void drawBackground(int x, int y, int z, int r, int g, int b, int alpha) {
-  // 図形の色、線
-  stroke(r-50, g-50, b-50);
-  strokeWeight(1);
-  fill(r, g, b, alpha);
-
-  // 描写開始
-  pushMatrix();
-  translate(x, y, z);
-  beginShape(QUADS);
   
-  // 後ろ
-  vertex(200, height, -300);
-  vertex(0, height, -300);
-  vertex(0, 0, -300);
-  vertex(200, 0, -300);
-  // 下
-  vertex(0, height, -300);
-  vertex(200, height, -300);
-  vertex(200, height, 0);
-  vertex(0, height, 0);
-  // 上
-  vertex(0, 0, -300);
-  vertex(200, 0, -300);
-  vertex(200, 0, 0);
-  vertex(0, 0, 0);
-  
-  // 描写終了
-  endShape();
-  popMatrix();
+  //// フレームセーブ
+  //saveFrame("frames/######.tif");
 }
 
 /*
@@ -116,26 +83,18 @@ class Mover {
   
   /*
   * コンストラクタ
-  * @param : m      質量
-  * @param : x      X座標
-  * @param : y      Y座標
-  * @param : z      Z座標
-  * @param : r_     Red
-  * @param : g_     Green
-  * @param : b_     Blue
-  * @param : alpha  透過度
   */
-  Mover(float m, float x, float y, float z, float r_, float g_, float b_, float alpha_) {
+  Mover(float m, float x, float y, float r_, float g_, float b_, float alpha_) {
     // 質量
     mass = m;
     // オブジェクトサイズ
     objSize = mass * 16;
     // 位置
-    location = new PVector(x + objSize, y + objSize, z + objSize);
+    location = new PVector(x, y);
     // 速度
-    velocity = new PVector(0, 0, 0);
+    velocity = new PVector(0, 0);
     // 加速度
-    acceleration = new PVector(0, 0, 0);
+    acceleration = new PVector(0, 0);
     // カラー
     r = r_;
     g = g_;
@@ -159,16 +118,10 @@ class Mover {
   * 画面表示
   */
   void display() {
-    // 図形の色・線
-    stroke(r - 10, g - 10, b - 10);
-    strokeWeight(1);
-    fill(r, g, b, alpha);
-    
-    // 描写
-    pushMatrix();
-    translate(location.x, location.y, location.z);
-    box(mass * 16);
-    popMatrix();
+    noStroke();
+    fill(r, g, b);
+    //ellipse(location.x, location.y, mass * 16, mass * 16);
+    rect(location.x, location.y, mass * 16, mass * 16);
   } 
 
   /*
@@ -188,24 +141,11 @@ class Mover {
     if (location.y > height - objSize) {
       velocity.y *= -1;
       location.y = height - objSize;
-    } else if (location.y < 0 + objSize) {
-      velocity.y *= -1;
-      location.y = 0 + objSize;
     }
-
-    // Z軸方向で壁に到達した場合
-    if (location.z > -50 - objSize) {
-      velocity.z *= -1;
-      location.z = -50 - objSize;
-    } else if (location.z < -300 + objSize) {
-      velocity.z *= -1;
-      location.z = -300 + objSize;
-    } 
   }
   
   /*
   * 力の積算
-  * @param : force      加算する力
   */
   void applyForce(PVector force) 
   {
